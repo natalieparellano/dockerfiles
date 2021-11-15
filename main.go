@@ -65,4 +65,6 @@ func exportTarball(path string) {
 		}
 		fmt.Printf("layer: %s\n", diffID)
 	}
+
+	// TODO: do something with image
 }
