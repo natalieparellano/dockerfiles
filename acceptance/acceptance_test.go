@@ -11,22 +11,22 @@ import (
 func TestTarball(t *testing.T) {
 	t.Run("tarball", func(t *testing.T) {
 		// setup
-		srcPath, err := filepath.Abs(".") // acceptance directory
+		testDir, err := filepath.Abs(".")
 		if err != nil {
 			t.Fatal(err)
 		}
-		err = os.RemoveAll(filepath.Join(srcPath, "in"))
+		err = os.RemoveAll(filepath.Join(testDir, "in"))
 		if err != nil {
 			t.Fatal(err)
 		}
-		err = os.MkdirAll(filepath.Join(srcPath, "in"), 0755)
+		err = os.MkdirAll(filepath.Join(testDir, "in"), 0755)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		// build binary
 		cmd := exec.Command("go", "build",
-			"-o", filepath.Join(srcPath, "testdata", "dockerfiles"),
+			"-o", filepath.Join(testDir, "testdata", "dockerfiles"),
 			"..",
 		)
 		cmd.Env = append(os.Environ(), "GOOS=linux")
@@ -39,8 +39,8 @@ func TestTarball(t *testing.T) {
 		// execute binary in container
 		cmd = exec.Command("docker", "run",
 			"--rm",
-			"-v", fmt.Sprintf("%s:/in", filepath.Join(srcPath, "testdata")),
-			"-v", fmt.Sprintf("%s:/kaniko", filepath.Join(srcPath, "in")),
+			"-v", fmt.Sprintf("%s:/in", filepath.Join(testDir, "testdata")),
+			"-v", fmt.Sprintf("%s:/kaniko", filepath.Join(testDir, "in")),
 			"golang",
 			"/in/dockerfiles", "/in/Dockerfile", "tarball",
 		)
