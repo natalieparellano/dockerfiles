@@ -1,11 +1,20 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/GoogleContainerTools/kaniko/pkg/config"
 	"github.com/GoogleContainerTools/kaniko/pkg/executor"
+	v1 "github.com/google/go-containerregistry/pkg/v1"
+)
+
+const ( // TODO: derive or pass in
+	outputDir                  = "/kaniko"
+	ubuntuBionicTopLayerDigest = "sha256:284055322776031bac33723839acb0db2d063a525ba4fa1fd268a831c7553b26"
 )
 
 func main() {
@@ -47,24 +56,55 @@ func exportTarball(path string) {
 		panic(err)
 	}
 
-	// get layers
-	config, err := image.ConfigFile()
+	// get config file
+	configJSON, err := image.ConfigFile()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("config: %+v\n", config)
+	configPath := filepath.Join(outputDir, "config.json")
+	c, err := os.Create(configPath)
+	if err != nil {
+		panic(err)
+	}
+	defer c.Close()
+	err = json.NewEncoder(c).Encode(*configJSON)
+
+	// get layers
 	layers, err := image.Layers()
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("generated %d layers\n", len(layers))
 	for _, layer := range layers {
-		diffID, err := layer.DiffID()
+		digest, err := layer.Digest()
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("layer: %s\n", diffID)
+		digestStr := digest.String()
+		if digestStr == ubuntuBionicTopLayerDigest {
+			continue
+		}
+		layerPath := filepath.Join(outputDir, digestStr+".tgz")
+		err = saveLayer(layer, layerPath)
+		if err != nil {
+			panic(err)
+		}
 	}
+}
 
-	// TODO: do something with image
+func saveLayer(layer v1.Layer, path string) error {
+	layerReader, err := layer.Compressed()
+	if err != nil {
+		return err
+	}
+	l, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer l.Close()
+	_, err = io.Copy(l, layerReader)
+	if err != nil {
+		return err
+	}
+	return nil
 }
