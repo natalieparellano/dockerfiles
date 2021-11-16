@@ -24,7 +24,7 @@ func TestTarball(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// build binary
+		fmt.Println("building binary...")
 		cmd := exec.Command("go", "build",
 			"-o", filepath.Join(testDir, "testdata", "dockerfiles"),
 			"..",
@@ -36,13 +36,19 @@ func TestTarball(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// execute binary in container
+		fmt.Println("executing binary in container...")
 		cmd = exec.Command("docker", "run",
 			"--rm",
-			"-v", fmt.Sprintf("%s:/in", filepath.Join(testDir, "testdata")),
+			"--env", "PATH=/usr/local/bin:/kaniko",
+			"--env", "HOME=/root",
+			"--env", "USER=root",
+			"--env", "SSL_CERT_DIR=/kaniko/ssl/certs",
+			"--env", "DOCKER_CONFIG=/kaniko/.docker/",
+			"--env", "DOCKER_CREDENTIAL_GCR_CONFIG=/kaniko/.config/gcloud/docker_credential_gcr_config.json",
+			"-v", fmt.Sprintf("%s:/workspace", filepath.Join(testDir, "testdata")),
 			"-v", fmt.Sprintf("%s:/kaniko", filepath.Join(testDir, "in")),
 			"golang",
-			"/in/dockerfiles", "/in/Dockerfile", "tarball",
+			"/workspace/dockerfiles", "/workspace/Dockerfile", "tarball",
 		)
 		output, err = cmd.CombinedOutput()
 		fmt.Println(string(output))

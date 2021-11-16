@@ -46,8 +46,16 @@ func exportLocal(path string) {
 func exportTarball(path string) {
 	// create Kaniko config
 	opts := &config.KanikoOptions{
-		DockerfilePath: path,
+		CacheOptions:   config.CacheOptions{CacheDir: "/cache"},
+		DockerfilePath: "/workspace/Dockerfile",
+		IgnoreVarRun:   true,
+		NoPush:         true,
+		SrcContext:     "dir:///workspace/",
 		SnapshotMode:   "full",
+	}
+
+	if err := os.Chdir("/"); err != nil {
+		panic(err)
 	}
 
 	// do build
