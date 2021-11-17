@@ -1,11 +1,13 @@
-FROM golang
+# stage 1: build binary
+FROM golang AS builder
 
 COPY . /tmp/dockerfiles
 
-RUN mkdir /kaniko && cd /tmp/dockerfiles && GOOS=linux go build -o /kaniko/dockerfiles .
+RUN mkdir /kaniko && cd /tmp/dockerfiles && CGO_ENABLED=0 GOOS=linux go build -o /dockerfiles .
 
-ENV PATH=/usr/local/bin:/kaniko
-ENV HOME=/root
-ENV USER=root
+# stage 2: copy binary
+FROM gcr.io/distroless/static
 
-ENTRYPOINT /kaniko/dockerfiles
+COPY --from=builder /dockerfiles /dockerfiles
+
+ENTRYPOINT ["/dockerfiles"]

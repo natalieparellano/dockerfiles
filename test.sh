@@ -13,4 +13,5 @@ echo "executing image..."
 docker run \
 			--rm \
 			-v $PWD/acceptance/testdata:/workspace \
+			-v $PWD/acceptance/in:/kaniko \
 			test-kaniko

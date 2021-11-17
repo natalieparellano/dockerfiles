@@ -18,6 +18,7 @@ const ( // TODO: derive or pass in
 )
 
 func main() {
+	fmt.Println("exporting tarball...")
 	exportTarball()
 }
 
