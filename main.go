@@ -24,7 +24,7 @@ func main() {
 
 func exportTarball() {
 	// create Kaniko config
-	opts := &config.KanikoOptions{
+	opts := &config.KanikoOptions{ // TODO: see which of these options are truly needed
 		CacheOptions:   config.CacheOptions{CacheDir: "/cache"},
 		DockerfilePath: "/workspace/Dockerfile",
 		IgnoreVarRun:   true,
