@@ -18,32 +18,10 @@ const ( // TODO: derive or pass in
 )
 
 func main() {
-	dockerfilePath := os.Args[1]
-	if dockerfilePath == "" {
-		panic("missing dockerfile path")
-	}
-	if _, err := os.Stat(dockerfilePath); err != nil {
-		panic(err)
-	}
-
-	exportOption := os.Args[2]
-	switch exportOption {
-	case "local":
-		exportLocal(dockerfilePath)
-		return
-	case "tarball":
-		exportTarball(dockerfilePath)
-		return
-	default:
-		panic(fmt.Sprintf("unsupported export option: %s", exportOption))
-	}
+	exportTarball()
 }
 
-func exportLocal(path string) {
-	// TODO
-}
-
-func exportTarball(path string) {
+func exportTarball() {
 	// create Kaniko config
 	opts := &config.KanikoOptions{
 		CacheOptions:   config.CacheOptions{CacheDir: "/cache"},
